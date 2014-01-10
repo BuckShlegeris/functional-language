@@ -12,9 +12,17 @@ data Exp = Op Operator Exp Exp
          | Let Name Exp Exp
          | Def Name [Name] Exp Exp
          | Call Exp [Exp]
-         | Case Exp Name [Name] Exp Exp
+         | Cases Exp [Case] Exp
          | Undefined
       deriving (Eq)
+
+data Case = Case Name [Name] Exp
+  deriving (Eq)
+
+instance Show Case where
+    show (Case name args exp1) -> "((# #)->#)" %% (name,
+                        concat $ intersperse " " (map show args),
+                        s exp1)
 
 instance IsString Exp where
   fromString x = Name x
@@ -29,9 +37,8 @@ instance Show Exp where
                             [name, concat $ intersperse ", " (map show args),
                                s exp1, s exp2]
       (Call func args) -> "#(#)" %% [s func, concat $ intersperse ", " (map show args)]
-      (Case exp0 name args exp1 exp2) -> "(case # of (# #) # #)" %%
-                            [s exp0, name, concat $ intersperse " " (map show args),
-                               s exp1, s exp2]
+      (Case exp0 name cases exp) -> "(case # of # otherwise #)" %%
+                            [s exp0, s cases, s exp]
 
 data Obj = Number Integer
          | String String
